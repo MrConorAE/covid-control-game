@@ -11,9 +11,9 @@ import time
 # Import the 'random' module - for generating random numbers.
 import random
 
-# NOTE ABOUT NUMBERS/VALUES:
+# NOTE ABOUT THE NUMBER 0/0.001:
 # To avoid ZeroDivisionErrors, anywhere the value 0 may be used, 0.001 may be used instead. As the display is only to 2dp, it makes a neglegible difference.
-# The code has been modified to also account for this.
+# The code has been modified to also account for this (i.e. doing calculations with 0, but replacing with 0.001 if the result is 0).
 
 # DATA STRUCTURES
 
@@ -28,18 +28,19 @@ class Option:
         self.comp = c
         self.happ = h
         self.econ = e
+    actv = False
 
 
 class Measures:
     # This class describes the total/sum of all the players' chosen Options.
-    def __init__(self, a):
-        active = a
-    inft = 1
-    supp = 0.001
-    test = 0.001
-    comp = 50
-    happ = 50
-    econ = 50
+    def __init__(self, a, i, s, t, c, h, e):
+        self.optn = a
+        self.inft = i
+        self.supp = s
+        self.test = t
+        self.comp = c
+        self.happ = h
+        self.econ = e
 
 
 class CoronaStats:
@@ -56,8 +57,9 @@ class Country:
     def __init__(self, n, l):
         self.ctry = n
         self.name = l
-    msrs = [Measures([]), Measures([])]
-    stat = [CoronaStats(1, 1, 1, 1), CoronaStats(1, 1, 1, 1)]
+    msrs = [Measures([Option("Test Option", "this is a test option", 10, 0, -0.1, 0.1, -0.1)], 1, 0.001, 0.001, 50, 50, 50),
+            Measures([], 1, 0.001, 0.001, 50, 50, 50)]
+    stat = [CoronaStats(1, 0, 0, 1), CoronaStats(1, 0, 0, 1)]
     turn = 0
     date = datetime.datetime(2020, 1, 1)
 
@@ -70,19 +72,47 @@ class SaveFile:
         data = d
 
 # VARIABLES
+# These are the instances of the classes defined above.
 
 
+# The player (and all their data) is stored in this ONE variable...
 player = None
+# This array holds Option objects, representing the options the user can activate/deactivate.
 options = []
+# Names (generated randomly) for when the user doesn't enter one.
+names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "Brian", "Carl",
+         "Peter", "Lydia", "Addie", "Alexandra", "Annie", "Victoria", "Julia", "Harriet", "Sadie"]
+# Countries (generated randomly, fictitious) for when the user doesn't want to pick one.
+countries = ["Tacxoem", "Guitu", "Markuin Isles", "Alza",
+             "Befolk", "North Hongland", "Ofmai", "Pagrice", "Stanri"]
 
 # FUNCTIONS
+
+
+def calculateMeasures(m):
+    # This function calculates new values for the metrics used in this game from the measures currently active.
+    #
+    i = 0  # Infection rate
+    s = 0  # Suppression
+    t = 0  # Testing
+    c = 0  # Compliance
+    h = 0  # Happiness
+    e = 0  # Economy
+    for o in m[0].optn:
+        s = s + o.supp
+        t = t + o.test
+        c = c + o.comp
+        h = h + o.happ
+        e = e + o.econ
+    # Return a new Measures object containing the new values
+    # From L to R: options, infection, suppression, testing, compliance, happiness, and economy
+    return Measures(m[0].optn, (i if i != 0 else 0.001), (s if s != 0 else 0.001), (t if t != 0 else 0.001), (m[0].comp - c), (m[0].happ - h), (m[0].econ - e))
 
 
 def display(c):
     try:
         # This function is based on the development prototype found in display.py. It has been modified (singnificantly) to
         # operate with the new data structure used in this version (see above).
-        #
         #
         # Add some padding to make it more readable.
         print("\n\n")
@@ -124,6 +154,8 @@ def display(c):
 
 
 def init():
+    global player
+    global options
     print("""
 ======================================================================# WELCOME TO #===================================================================
 
@@ -165,8 +197,8 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
     print("First things first: Do you want to create a new game, or load an existing one?")
     print("(Note: if you've never played before, you want to select New Game.)")
     print("")  # Padding
-    neworload = input("New Game ('new') or Load Save ('load')? ")
     while True:
+        neworload = input("New Game ('new') or Load Save ('load')? ")
         if ("NEW" in neworload.upper()):
             # The user wants to make a new game.
             print("All right! Let's get started!")
@@ -178,7 +210,7 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
                 name = random.choice(names)
                 print(f"{name}!")
             else:
-                print(f"OK, welcome {name}!")
+                print(f"Hello, {name}!")
             # Now let's get the user's country.
             ctry = input(
                 "Next, pick a country to 'lead' (or, again, leave blank for a random one): ")
@@ -190,22 +222,26 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
                 print(f"OK, {ctry} it is!")
             # Generate a profile.
             print("Generating your game...")
-
+            player = Country(ctry, name)
+            print("Done!")
+            input("Press [ENTER] to continue... ")
+            break
         elif ("LOAD" in neworload.upper()):
             # The user wants to load an existing save.
-            print("Not Implemented - Coming Soon!")
-
-
-# MAIN GAME LOOP
-# This is the main loop of the game; where player input is recieved and processed. All the other functions are called from here.
-
-
-def run():
-    while True:
-        pass
+            raise NotImplementedError
+        else:
+            print("Hrm, that doesn't look like a valid option.")
+            print("Please type one of the options.")
 
 
 # STARTER
 # This line starts the init() program, which in turn starts everything else.
 init()
-display(Country("New Zealand", "Conor"))
+
+# MAIN GAME LOOP
+# This is the main loop of the game; where player input is recieved and processed. All the other functions are called from here.
+while True:
+    player.msrs.insert(0, calculateMeasures(player.msrs))
+    display(player)
+    input("next turn...")
+    player.turn = player.turn + 1

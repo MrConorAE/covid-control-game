@@ -85,7 +85,28 @@ class Country:
                       Option("H", "None", "No happiness measures.",
                              0, 0, 0, -0.1, 0)],
                      50, 50, 50, 50, 50),
-            Measures([], 0.001, 0.001, 50, 50, 50)]
+            Measures([Option("R", "None", "No restrictions at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("E", "None", "No economic policies in effect.",
+                             0, 0, 0, -0.1, 0),
+                      Option("T", "None", "No testing at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("M", "None", "No mandates enforced.",
+                             0, 0, 0, -0.1, 0),
+                      Option("H", "None", "No happiness measures.",
+                             0, 0, 0, -0.1, 0)],
+                     50, 50, 50, 50, 50),
+            Measures([Option("R", "None", "No restrictions at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("E", "None", "No economic policies in effect.",
+                             0, 0, 0, -0.1, 0),
+                      Option("T", "None", "No testing at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("M", "None", "No mandates enforced.",
+                             0, 0, 0, -0.1, 0),
+                      Option("H", "None", "No happiness measures.",
+                             0, 0, 0, -0.1, 0)],
+                     50, 50, 50, 50, 50)]
     # The first item in this array is the totals.
     stat = [CoronaStats(1, 100, 0, 0, 1, 1),
             CoronaStats(1, 100, 0, 0, 1, 1),
@@ -111,15 +132,26 @@ player = None
 # All the available options to the user are hard-coded here.
 options = [
     OptionCategory("R", "Restrictions", [
-        Option("R", "Test Option", "this is a test option", 50, 50, -20, 0, 0)
+        Option("R", "None", "No restrictions at all.",
+               0, 0, 0, -0.1, 0)
     ]),
     OptionCategory("E", "Economy", [
-        Option("E", "Test Option", "this is a test option", 50, 50, -20, 0, 0),
-        Option("E", "Test Option", "this is a test option", 50, 50, -20, 0, 0)
+        Option("E", "None", "No restrictions at all.",
+               0, 0, 0, -0.1, 0),
+        Option("E", "Test Option", "decrease compliance by 20", 50, 50, -20, 0, 0)
     ]),
-    OptionCategory("T", "Testing & Tracing", []),
-    OptionCategory("M", "Mandates", []),
-    OptionCategory("H", "Happiness", [])]
+    OptionCategory("T", "Testing & Tracing", [
+        Option("T", "None", "No restrictions at all.",
+               0, 0, 0, -0.1, 0)
+    ]),
+    OptionCategory("M", "Mandates", [
+        Option("M", "None", "No restrictions at all.",
+               0, 0, 0, -0.1, 0)
+    ]),
+    OptionCategory("H", "Happiness", [
+        Option("H", "None", "No restrictions at all.",
+               0, 0, 0, -0.1, 0)
+    ])]
 # Names (generated randomly) for when the user doesn't enter one.
 names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "Brian", "Carl",
          "Peter", "Lydia", "Addie", "Alexandra", "Annie", "Victoria", "Julia", "Harriet", "Sadie"]
@@ -128,7 +160,7 @@ countries = ["Tacxoem", "Guitu", "Markuin Isles", "Alza",
              "Befolk", "North Hongland", "Ofmai", "Pagrice", "Stanri"]
 
 # FUNCTIONS #######################################################################################
-# These are functions that do things!
+# These are functions that do things! (Wow! Who knew?)
 
 
 def calculateMeasures(m):
@@ -136,14 +168,14 @@ def calculateMeasures(m):
     #
     # This function expects an array of Measures objects to be passed to it (m), containing at least one item.
     #
-    # This function returns a new Measures object, to be appended to a Country.msrs array.
+    # This function returns a new Measures object, to replace the original item in a Measures array.
     #
     s = 0  # Suppression
     t = 0  # Testing
-    c = 0  # Compliance
-    h = 0  # Happiness
-    e = 0  # Economy
-    for o in m[0].optn:
+    c = m.comp  # Compliance
+    h = m.happ  # Happiness
+    e = m.econ  # Economy
+    for o in m.optn:
         s = s + o.supp
         t = t + o.test
         c = c + o.comp
@@ -151,7 +183,7 @@ def calculateMeasures(m):
         e = e + o.econ
     # Return a new Measures object containing the new values
     # From L to R: options, suppression, testing, compliance, happiness, and economy
-    return Measures(m[0].optn, (s if s > 0 else 0.001), (t if t > 0 else 0.001), ((m[0].comp + c) if (m[0].comp + c) > 0 else 0.001), ((m[0].happ + h) if (m[0].happ + h) > 0 else 0.001), ((m[0].econ + e) if (m[0].econ + e) > 0 else 0.001))
+    return Measures(m.optn, (s if s > 0 else 0.001), (t if t > 0 else 0.001), (c if c > 0 else 0.001), (h if h > 0 else 0.001), (e if e > 0 else 0.001))
 
 
 def calculateCOVID(m, s):
@@ -227,8 +259,7 @@ def optionChanges(o, m):
     # This function returns a new Measures object with totals, based on the player's selections.
     #
     oldMeasures = m[0]
-    newMeasures = Measures(m[0].optn, m[0].supp, m[0].test,
-                           m[0].comp, m[0].happ, m[0].econ)
+    newMeasures = m[0]
     while True:
         print("\n\n")
         print("- MEASURE SELECTION ------------------------------------------------------------------------------------------")
@@ -245,10 +276,10 @@ def optionChanges(o, m):
         selection = input("Category or ID: ")
         print("\n")
         if (re.search("^([A-Z][0-9]+)$", selection) != None):
-            # This regular expression searches for Option IDs only (letter and a number)
+            # This regular expression searches for Option IDs only (letter and a number).
+            catNo = 0
             for c in o:
                 # Get category first
-                catNo = 0
                 if c.key == selection[0]:
                     # Check if there are any items in the category
                     if (len(c.list) > 0):
@@ -262,6 +293,8 @@ def optionChanges(o, m):
                                 if (confirm.upper() == "Y"):
                                     print(
                                         f"{c.list[int(selection[1:])].name} activated!")
+                                    for item in c.list:
+                                        item.actv = False
                                     c.list[int(selection[1:])].actv = True
                                     newMeasures.optn[catNo] = c.list[int(
                                         selection[1:])]
@@ -307,11 +340,13 @@ def optionChanges(o, m):
                         input("Press ENTER to go back to the categories list.")
         elif selection.lower() == "quit":
             print("Exiting measure selection.")
-            return
+            break
         else:
             print(
                 f"'{selection}' doesn't look like a valid ID. Please try again.")
             input("Press ENTER to go back to the categories list.")
+    # Calculate the new totals and return.
+    return newMeasures
 
 
 def display(c):
@@ -460,12 +495,13 @@ while True:
 
     print("")
     # Give the user the option of changing measures.
+    ochanges = None
     while True:
         print("What would you like to do?")
         change = input(
             "Modify Measures ('M'), Save ('S'), Quit ('Q') or Next Turn (ENTER): ")
         if ("m" in change.lower()):
-            optionChanges(options, player.msrs)
+            ochanges = optionChanges(options, player.msrs)
         elif ("s" in change.lower()):
             print("Saving not available yet.")
         elif ("q" in change.lower()):
@@ -480,10 +516,20 @@ while True:
         else:
             print("Please select an option.")
 
-    # Calculate the new Measures totals.
-    player.msrs.insert(0, calculateMeasures(player.msrs))
+    # Apply changes.
+    try:
+        if (ochanges != None):
+            player.msrs.insert(0, ochanges)
+        else:
+            player.msrs.insert(0, player.msrs[0])
+    except NameError:
+        # If there were no changes, do nothing.
+        player.msrs.insert(0, player.msrs[0])
 
-    # Generate new dcse/death/recovery/active numbers.
+    # Calculate new totals.
+    player.msrs[0] = calculateMeasures(player.msrs[0])
+
+    # Generate new detected case/total case/death/recovery/active numbers.
     player.stat.insert(1, calculateCOVID(player.msrs, player.stat))
 
     # Replace the first CovidStats object (the totals) with newly calculated ones.

@@ -10,8 +10,12 @@ import datetime
 import time
 # Import the 'random' module - for generating random numbers.
 import random
-# Import the 'math' modile - for doing advanced mathematics.
+# Import the 'math' module - for doing advanced mathematics.
 import math
+# Import the 're' module - for regular expressions.
+import re
+# Import the 'sys' module - for interacting with the system.
+import sys
 
 # NOTE ABOUT THE NUMBER 0/0.001: ##################################################################
 # To avoid ZeroDivisionErrors, anywhere the value 0 may be used, 0.001 may be used instead. As the display is only to 2dp, it makes a neglegible difference.
@@ -23,7 +27,8 @@ import math
 
 class Option:
     # This class describes an option the player can "activate" (start enforcing).
-    def __init__(self, n, d, s, t, c, h, e):
+    def __init__(self, C, n, d, s, t, c, h, e):
+        self.catg = C
         self.name = n
         self.desc = d
         self.supp = s
@@ -32,6 +37,14 @@ class Option:
         self.happ = h
         self.econ = e
     actv = False
+
+
+class OptionCategory:
+    # This class describes a category of options the player can choose from.
+    def __init__(self, k, t, o: Option):
+        self.key = k
+        self.title = t
+        self.list = o
 
 
 class Measures:
@@ -61,7 +74,17 @@ class Country:
     def __init__(self, n, l):
         self.ctry = n
         self.name = l
-    msrs = [Measures([Option("Test Option", "this is a test option", 50, 50, -20, 0, 0)], 50, 50, 50, 50, 50),
+    msrs = [Measures([Option("R", "None", "No restrictions at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("E", "None", "No economic policies in effect.",
+                             0, 0, 0, -0.1, 0),
+                      Option("T", "None", "No testing at all.",
+                             0, 0, 0, -0.1, 0),
+                      Option("M", "None", "No mandates enforced.",
+                             0, 0, 0, -0.1, 0),
+                      Option("H", "None", "No happiness measures.",
+                             0, 0, 0, -0.1, 0)],
+                     50, 50, 50, 50, 50),
             Measures([], 0.001, 0.001, 50, 50, 50)]
     # The first item in this array is the totals.
     stat = [CoronaStats(1, 100, 0, 0, 1, 1),
@@ -84,8 +107,19 @@ class SaveFile:
 
 # The player (and all their data) is stored in this ONE variable... (._.)
 player = None
-# This array holds Option objects, representing the options the user can activate/deactivate.
-options = []
+# This array holds OptionCategory objects, representing the options the user can activate/deactivate.
+# All the available options to the user are hard-coded here.
+options = [
+    OptionCategory("R", "Restrictions", [
+        Option("R", "Test Option", "this is a test option", 50, 50, -20, 0, 0)
+    ]),
+    OptionCategory("E", "Economy", [
+        Option("E", "Test Option", "this is a test option", 50, 50, -20, 0, 0),
+        Option("E", "Test Option", "this is a test option", 50, 50, -20, 0, 0)
+    ]),
+    OptionCategory("T", "Testing & Tracing", []),
+    OptionCategory("M", "Mandates", []),
+    OptionCategory("H", "Happiness", [])]
 # Names (generated randomly) for when the user doesn't enter one.
 names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "Brian", "Carl",
          "Peter", "Lydia", "Addie", "Alexandra", "Annie", "Victoria", "Julia", "Harriet", "Sadie"]
@@ -185,6 +219,101 @@ def calculateCOVIDTotal(s):
     return CoronaStats(discoveredCases, actualCases, deaths, recoveries, active, 0)
 
 
+def optionChanges(o, m):
+    # This function allows the player to make changes to their activated measures, by browsing and selecting available options.
+    #
+    # This function expects an array of OptionCategory objects (o) to be passed, and an array of Measures objects (m) with at least one item.
+    #
+    # This function returns a new Measures object with totals, based on the player's selections.
+    #
+    oldMeasures = m[0]
+    newMeasures = Measures(m[0].optn, m[0].supp, m[0].test,
+                           m[0].comp, m[0].happ, m[0].econ)
+    while True:
+        print("\n\n")
+        print("- MEASURE SELECTION ------------------------------------------------------------------------------------------")
+        print("Categories:")
+        for c in o:
+            print(f"({c.key}) {c.title} - {len(c.list)} option(s)")
+        print("")
+        print("You can:")
+        print(
+            "- Enter a Category ID (e.g. 'T') to browse the options in that category,")
+        print("- Type an Option ID (e.g. 'T1') to quickly activate that option,")
+        print("- or type 'quit' to exit Measure Selection.")
+        print("")
+        selection = input("Category or ID: ")
+        print("\n")
+        if (re.search("^([A-Z][0-9]+)$", selection) != None):
+            # This regular expression searches for Option IDs only (letter and a number)
+            for c in o:
+                # Get category first
+                catNo = 0
+                if c.key == selection[0]:
+                    # Check if there are any items in the category
+                    if (len(c.list) > 0):
+                        # If yes, check if the item specified exists
+                        if (len(c.list) > int(selection[1:])):
+                            print(
+                                f"({selection}) {c.list[int(selection[1:])].name}\n     {c.list[int(selection[1:])].desc}")
+                            print("Is this the measure you want to activate?")
+                            while True:
+                                confirm = input("Confirm selection (Y/N): ")
+                                if (confirm.upper() == "Y"):
+                                    print(
+                                        f"{c.list[int(selection[1:])].name} activated!")
+                                    c.list[int(selection[1:])].actv = True
+                                    newMeasures.optn[catNo] = c.list[int(
+                                        selection[1:])]
+                                    break
+                                else:
+                                    print(
+                                        f"Cancelled. {c.list[int(selection[1:])].name} was not activated.")
+                                    input(
+                                        "Press ENTER to go back to the categories list.")
+                                    break
+                        else:
+                            print(
+                                f"That option ({selection}) does not exist. Please try again.")
+                            input(
+                                "Press ENTER to go back to the categories list.")
+                    else:
+                        # If no, say so
+                        print(
+                            f"There are no options in the {c.title} category.")
+                        input("Press ENTER to go back to the categories list.")
+                else:
+                    catNo = catNo + 1
+                    continue
+        elif (re.search("^([A-Z])$", selection) != None):
+            # This regular expression searches for Category keys only (letter)
+            for c in o:
+                # Get category first
+                if c.key == selection:
+                    n = 0
+                    # Check if there are any items in the category
+                    if (len(c.list) > 0):
+                        # If yes, list them
+                        print(f"Options in {c.title} category:\n")
+                        for i in c.list:
+                            print(
+                                f"({selection}{n}) {i.name} {'[ACTIVE]' if i.actv else ''}\n     {i.desc}")
+                            n = n + 1
+                        input("Press ENTER to go back to the categories list.")
+                    else:
+                        # If no, say so
+                        print(
+                            f"There are no options in the {c.title} category.")
+                        input("Press ENTER to go back to the categories list.")
+        elif selection.lower() == "quit":
+            print("Exiting measure selection.")
+            return
+        else:
+            print(
+                f"'{selection}' doesn't look like a valid ID. Please try again.")
+            input("Press ENTER to go back to the categories list.")
+
+
 def display(c):
     # This function is based on the development prototype found in display.py. It has been modified (singnificantly) to
     # operate with the new data structure used in this version.
@@ -199,7 +328,7 @@ def display(c):
         # Print the turn number, date and player name.
         print(
             f"TURN {c.turn:>3} - DATE {c.date.day:02}/{c.date.month:02}/{c.date.year:04} - Prime Minister of {c.ctry}, {c.name}")
-        print("- CORONAVIRUS STATISTICS ------------------------------------------------------------------------------------")
+        print("- CORONAVIRUS STATISTICS -------------------------------------------------------------------------------------")
         # Print the COVID-19 statistics.
         # WARNING: Item 0 is the totals, Item 1+ are the biweekly values!
         print(f"              STATISTIC                THIS TURN                 TOTAL")
@@ -273,7 +402,7 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
 """)
     input("Press [ENTER] to continue... ")
     # Padding
-    print("-----------------------------------------------------------------------------------")
+    print("--------------------------------------------------------------------------------------------------------------")
     print("Right. Now that we've got the backstory out of the way, let's get this game started!")
     print("")  # Padding
     print("First things first: Do you want to create a new game, or load an existing one?")
@@ -323,6 +452,34 @@ init()
 # MAIN GAME LOOP ##################################################################################
 # This is the main loop of the game; where player input is recieved and processed. All the other functions are called from here.
 while True:
+    # Increment the turn counter
+    player.turn = player.turn + 1
+
+    # Display information to the user.
+    display(player)
+
+    print("")
+    # Give the user the option of changing measures.
+    while True:
+        print("What would you like to do?")
+        change = input(
+            "Modify Measures ('M'), Save ('S'), Quit ('Q') or Next Turn (ENTER): ")
+        if ("m" in change.lower()):
+            optionChanges(options, player.msrs)
+        elif ("s" in change.lower()):
+            print("Saving not available yet.")
+        elif ("q" in change.lower()):
+            print("Are you sure you want to quit?")
+            bye = input("Yes or No: ")
+            if ("y" in bye.lower()):
+                print("OK, bye!")
+                sys.exit()
+        elif (change.lower() == ""):
+            print(f"Starting Turn {player.turn + 1}...")
+            break
+        else:
+            print("Please select an option.")
+
     # Calculate the new Measures totals.
     player.msrs.insert(0, calculateMeasures(player.msrs))
 
@@ -331,10 +488,3 @@ while True:
 
     # Replace the first CovidStats object (the totals) with newly calculated ones.
     player.stat[0] = calculateCOVIDTotal(player.stat)
-
-    # Display all of this information to the user.
-    display(player)
-    input("next turn...")
-
-    # Increment the turn counter.
-    player.turn = player.turn + 1

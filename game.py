@@ -136,20 +136,21 @@ options = [
                0, 0, 0, -0.1, 0)
     ]),
     OptionCategory("E", "Economy", [
-        Option("E", "None", "No restrictions at all.",
+        Option("E", "None", "No economic policies.",
                0, 0, 0, -0.1, 0),
-        Option("E", "Test Option", "decrease compliance by 20", 50, 50, -20, 0, 0)
+        Option("E", "Test Option",
+               "Decrease compliance by 20 per turn.", 50, 50, -20, 0, 0)
     ]),
     OptionCategory("T", "Testing & Tracing", [
-        Option("T", "None", "No restrictions at all.",
+        Option("T", "None", "No testing at all.",
                0, 0, 0, -0.1, 0)
     ]),
     OptionCategory("M", "Mandates", [
-        Option("M", "None", "No restrictions at all.",
+        Option("M", "None", "No mandates in effect.",
                0, 0, 0, -0.1, 0)
     ]),
     OptionCategory("H", "Happiness", [
-        Option("H", "None", "No restrictions at all.",
+        Option("H", "None", "No happiness measures.",
                0, 0, 0, -0.1, 0)
     ])]
 # Names (generated randomly) for when the user doesn't enter one.
@@ -271,22 +272,25 @@ def optionChanges(o, m):
         print(
             "- Enter a Category ID (e.g. 'T') to browse the options in that category,")
         print("- Type an Option ID (e.g. 'T1') to quickly activate that option,")
-        print("- or type 'quit' to exit Measure Selection.")
+        print("- or type 'B' to exit Measure Selection and go back.")
         print("")
         selection = input("Category or ID: ")
         print("\n")
-        if (re.search("^([A-Z][0-9]+)$", selection) != None):
+        if selection.lower() == "b":
+            print("Exiting measure selection.")
+            break
+        elif (re.search("^([A-Z][0-9]+)$", selection, re.IGNORECASE) != None):
             # This regular expression searches for Option IDs only (letter and a number).
             catNo = 0
             for c in o:
                 # Get category first
-                if c.key == selection[0]:
+                if c.key == selection[0].upper():
                     # Check if there are any items in the category
                     if (len(c.list) > 0):
                         # If yes, check if the item specified exists
                         if (len(c.list) > int(selection[1:])):
                             print(
-                                f"({selection}) {c.list[int(selection[1:])].name}\n     {c.list[int(selection[1:])].desc}")
+                                f"({selection.upper()}) {c.list[int(selection[1:])].name}\n     {c.list[int(selection[1:])].desc}")
                             print("Is this the measure you want to activate?")
                             while True:
                                 confirm = input("Confirm selection (Y/N): ")
@@ -307,22 +311,26 @@ def optionChanges(o, m):
                                     break
                         else:
                             print(
-                                f"That option ({selection}) does not exist. Please try again.")
+                                f"That option ({selection.upper()}) does not exist. Please try again.")
                             input(
                                 "Press ENTER to go back to the categories list.")
+                            break
                     else:
                         # If no, say so
                         print(
                             f"There are no options in the {c.title} category.")
                         input("Press ENTER to go back to the categories list.")
+                        break
                 else:
                     catNo = catNo + 1
                     continue
-        elif (re.search("^([A-Z])$", selection) != None):
+        elif (re.search("^([A-Z])$", selection, re.IGNORECASE) != None):
             # This regular expression searches for Category keys only (letter)
+            found = False
             for c in o:
                 # Get category first
-                if c.key == selection:
+                if c.key == selection.upper():
+                    found = True
                     n = 0
                     # Check if there are any items in the category
                     if (len(c.list) > 0):
@@ -330,21 +338,24 @@ def optionChanges(o, m):
                         print(f"Options in {c.title} category:\n")
                         for i in c.list:
                             print(
-                                f"({selection}{n}) {i.name} {'[ACTIVE]' if i.actv else ''}\n     {i.desc}")
+                                f"({selection.upper()}{n}) {i.name} {'[ACTIVE]' if i.actv else ''}\n     {i.desc}")
                             n = n + 1
                         input("Press ENTER to go back to the categories list.")
+                        break
                     else:
                         # If no, say so
                         print(
                             f"There are no options in the {c.title} category.")
                         input("Press ENTER to go back to the categories list.")
-        elif selection.lower() == "quit":
-            print("Exiting measure selection.")
-            break
+                        break
+            if not found:
+                print(f"That category ({selection.upper()}) does not exist.")
+                input("Press ENTER to go back to the categories list.")
         else:
             print(
                 f"'{selection}' doesn't look like a valid ID. Please try again.")
             input("Press ENTER to go back to the categories list.")
+            break
     # Calculate the new totals and return.
     return newMeasures
 
@@ -373,8 +384,13 @@ def display(c):
             f"                Deaths               {c.stat[1].dead:>+10}            {c.stat[0].dead:>10}     ({(c.stat[0].dead/c.stat[0].dcse)*100:>5.2f}% Death Rate)")
         print(
             f"            Recoveries               {c.stat[1].recv:>+10}            {c.stat[0].recv:>10}     ({(c.stat[0].recv/c.stat[0].dcse)*100:>5.2f}% Recovery Rate)")
-        print(
-            f"                Active               ---                   {c.stat[0].actv:>10}     ({(c.stat[0].actv/c.stat[0].dcse)*100:>5.2f}% Active)")
+        if ((c.stat[0].actv / c.stat[0].dcse) * 100 < 0):
+            # If the Active count is negative (because of low testing and high cases), display something else (the negative values are confusing, according to stakeholder feedback).
+            print(
+                f"                Active               ---                          ???     (Too low testing to determine number!)")
+        else:
+            print(
+                f"                Active               ---                   {c.stat[0].actv:>10}     ({(c.stat[0].actv/c.stat[0].dcse)*100:>5.2f}% Active)")
         print("")
         print("- RATINGS/STATUS ---------------------------------------------------------------------------------------------")
         # Print the Ratings (transmission, testing, suppression, happiness, compliance, economy)
@@ -487,8 +503,9 @@ init()
 # MAIN GAME LOOP ##################################################################################
 # This is the main loop of the game; where player input is recieved and processed. All the other functions are called from here.
 while True:
-    # Increment the turn counter
+    # Increment the turn counter and date
     player.turn = player.turn + 1
+    player.date = player.date + datetime.timedelta(days=7)
 
     # Display information to the user.
     display(player)

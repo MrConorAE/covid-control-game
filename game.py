@@ -84,7 +84,7 @@ class Country:
                              0, 0, 0, -0.1, 0),
                       Option("H", "None", "No happiness measures.",
                              0, 0, 0, -0.1, 0)],
-                     50, 50, 50, 50, 50),
+                     0, 0, 90, 50, 50),
             Measures([Option("R", "None", "No restrictions at all.",
                              0, 0, 0, -0.1, 0),
                       Option("E", "None", "No economic policies in effect.",
@@ -95,7 +95,7 @@ class Country:
                              0, 0, 0, -0.1, 0),
                       Option("H", "None", "No happiness measures.",
                              0, 0, 0, -0.1, 0)],
-                     50, 50, 50, 50, 50),
+                     0, 0, 90, 50, 50),
             Measures([Option("R", "None", "No restrictions at all.",
                              0, 0, 0, -0.1, 0),
                       Option("E", "None", "No economic policies in effect.",
@@ -106,7 +106,7 @@ class Country:
                              0, 0, 0, -0.1, 0),
                       Option("H", "None", "No happiness measures.",
                              0, 0, 0, -0.1, 0)],
-                     50, 50, 50, 50, 50)]
+                     0, 0, 90, 50, 50)]
     # The first item in this array is the totals.
     stat = [CoronaStats(1, 100, 0, 0, 1, 1),
             CoronaStats(1, 100, 0, 0, 1, 1),
@@ -133,25 +133,89 @@ player = None
 options = [
     OptionCategory("R", "Restrictions", [
         Option("R", "None", "No restrictions at all.",
-               0, 0, 0, -0.1, 0)
+               0, 0, 0, -0.1, 0),
+        Option("R", "Gathering Limit 100", "No events can be held with >100 people.",
+               10, 0, -0.05, 0, -0.1),
+        Option("R", "Gathering Limit 10", "No events can be held with >10 people.",
+               20, 0, -0.05, +0.1, -0.2),
+        Option("R", "Social Distancing Compulsory", "Social distancing must be observed at all times.",
+               30, 0, -0.1, +0.5, -0.5),
+        Option("R", "Masks Compulsory", "A mask or face covering must be worn at all times.",
+               40, 0, -0.2, +0.2, -1),
+        Option("R", "Schools and Workplaces Closed", "All those who can work or learn from home must do so.",
+               50, 0, -0.5, +0.1, -2),
+        Option("R", "Businesses Closed", "All businesses' physical premises must close, excepting essentials.",
+               60, 0, -1, -0.2, -4),
+        Option("R", "Isolation of Vulnerable Population", "Vulnerable persons (over 70, immunocompromised) must stay home.",
+               70, -2, -2, -0.5, -6),
+        Option("R", "Martial Law and Curfews", "The military is brought in to enforce measures.",
+               80, -15, -1, -5, -8),
+        Option("R", "Full Lockdown", "Nobody can leave their property for any reason (execpt for food/supplies).",
+               95, -25, 5, -10, -10)
     ]),
     OptionCategory("E", "Economy", [
         Option("E", "None", "No economic policies.",
                0, 0, 0, -0.1, 0),
-        Option("E", "Test Option",
-               "Decrease compliance by 20 per turn.", 50, 50, -20, 0, 0)
+        Option("E", "Single Handout", "One-off handout of $1,000.",
+               0, 0, 0, 1, 2),
+        Option("E", "Single Large Handout", "One-off handout of $2,500.",
+               0, 0, 0, 1.1, 2),
+        Option("E", "Small Loans", "Interest-free loan of $5,000.",
+               0, 0, 0, 1.2, 5),
+        Option("E", "Large Loans", "Interest-free loan of $8,000.",
+               0, 0, 0, 1.5, 5.5),
+        Option("E", "50% Subsidy", "Wage subsidy for businesses that have lost 50% or more.",
+               0, 0, 0, 2, 5.75),
+        Option("E", "30% Subsidy", "Wage subsidy for businesses that have lost 30% or more.",
+               0, 0, 0, 2.5, 3),
+        Option("E", "Full Subsidy", "Wage subsidy for businesses that have lost any amount.",
+               0, 0, 0, 3, 1)
     ]),
     OptionCategory("T", "Testing & Tracing", [
         Option("T", "None", "No testing at all.",
-               0, 0, 0, -0.1, 0)
+               0, 0, 0, -0.1, 0),
+        Option("T", "Contact Tracing", "Contacts of positive cases are tested.",
+               0, 5, -0.01, 0, -0.2),
+        Option("T", "Symptomatic Citizens", "Any symptomatic citizen can get tested.",
+               0, 15, -0.05, 0.5, -0.5),
+        Option("T", "Medical Staff", "All medical and healthcare workers are tested.",
+               0, 20, -0.1, 0.7, -0.7),
+        Option("T", "New Arrivals", "All new arrivals to the country are tested on entry.",
+               0, 40, -0.5, 1, -1),
+        Option("T", "Border Staff", "Border staff/workers are tested.",
+               0, 50, -0.5, 1.2, -1.2),
+        Option("T", "Random Testing", "Random population testing in confirmed case regions.",
+               0, 60, -1, 1.5, -1.5),
+        Option("T", "Broad Random Testing", "Random population testing everywhere.",
+               0, 65, -1, 1, -1.7),
+        Option("T", "Everyone", "Everybody is eligible to get a test.",
+               0, 75, -2, 0.5, -2),
     ]),
     OptionCategory("M", "Mandates", [
         Option("M", "None", "No mandates in effect.",
-               0, 0, 0, -0.1, 0)
+               0, 0, 0, -0.1, 0),
+        Option("M", "Contact Tracing App", "Develop a contact tracing app for your citizens to use.",
+               0, 10, 0.1, 0.1, 0),
+        Option("M", "Mandatory Contact Tracing App", "All citizens must use the contact tracing app.",
+               0, 15, 0, 0, 0),
+        Option("M", "Start Vaccine Development", "Start developing a vaccine.",
+               0, 0, 0, 5, -1)
     ]),
     OptionCategory("H", "Happiness", [
         Option("H", "None", "No happiness measures.",
-               0, 0, 0, -0.1, 0)
+               0, 0, 0, -0.1, 0),
+        Option("H", "Small Advertising Campaign", "Run a small advertising campaign to inform.",
+               0, 0, 0, 1, -0.01),
+        Option("H", "Large Advertising Campaign", "Run a large advertising campaign to inform people.",
+               0, 0, 0, 2, -0.02),
+        Option("H", "Social Media Updates", "Send out updates on official social media channels.",
+               0, 0, 0, 4, -0.03),
+        Option("H", "Frequent Social Media Updates", "Send out updates on official social media channels daily.",
+               0, 0, 0, 6, -0.04),
+        Option("H", "Weekly Press Conferences", "Run weekly press conferences, shown live on state TV.",
+               0, 0, 0, 8, -0.05),
+        Option("H", "Daily Press Conferences", "Run daily press conferences, shown live on state TV.",
+               0, 0, 0, 10, -0.06),
     ])]
 # Names (generated randomly) for when the user doesn't enter one.
 names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "Brian", "Carl",
@@ -167,24 +231,40 @@ countries = ["Tacxoem", "Guitu", "Markuin Isles", "Alza",
 def calculateMeasures(m):
     # This function calculates new values for the metrics used in this game from the measures currently active.
     #
-    # This function expects an array of Measures objects to be passed to it (m), containing at least one item.
+    # This function expects an array of Measures objects to be passed to it (m), containing at least 3 items.
     #
     # This function returns a new Measures object, to replace the original item in a Measures array.
     #
     s = 0  # Suppression
     t = 0  # Testing
-    c = m.comp  # Compliance
-    h = m.happ  # Happiness
-    e = m.econ  # Economy
-    for o in m.optn:
+    c = m[1].happ  # Compliance (is happiness with a 1 week lag)
+    h = m[0].happ  # Happiness
+    e = m[0].econ  # Economy
+    for o in m[0].optn:
         s = s + o.supp
         t = t + o.test
         c = c + o.comp
         h = h + o.happ
         e = e + o.econ
+    # Apply a +/- multiplier to Happiness if Economy is high/low, respectively
+    if (e < 25):
+        h = h * 0.9
+    elif (e > 75):
+        h = h * 1.1
+    # For each metric, if it's higher than 100 or lower than 0, "level" it
+    s = s if s > 0 else 0.001
+    s = s if s < 100 else 100
+    t = t if t > 0 else 0.001
+    t = t if t < 100 else 100
+    c = c if c > 0 else 0.001
+    c = c if c < 100 else 100
+    h = h if h > 0 else 0.001
+    h = h if h < 100 else 100
+    e = e if e > 0 else 0.001
+    e = e if e < 100 else 100
     # Return a new Measures object containing the new values
     # From L to R: options, suppression, testing, compliance, happiness, and economy
-    return Measures(m.optn, (s if s > 0 else 0.001), (t if t > 0 else 0.001), (c if c > 0 else 0.001), (h if h > 0 else 0.001), (e if e > 0 else 0.001))
+    return Measures(m[0].optn, s, t, c, h, e)
 
 
 def calculateCOVID(m, s):
@@ -221,8 +301,14 @@ def calculateCOVID(m, s):
     newDeaths = math.ceil(actualCases * random.uniform(0.01, 0.05))
     # Calculate the number of new recoveries (last * recovery (0.5 - 0.8))
     newRecoveries = math.ceil(discoveredCases * random.uniform(0.5, 0.8))
+    # Calculate a transmission rate, checking for 0 (ZeroDivisionError)!
+    try:
+        newTransmission = (newDiscoveredCases /
+                           discoveredCases) if (discoveredCases == 0) else 0.001
+    except ZeroDivisionError:
+        newTransmission = 0.001
     # Return all of these new numbers in a new CovidStats object.
-    return CoronaStats(newDiscoveredCases, newActualCases, newDeaths, newRecoveries, 0, (newDiscoveredCases/discoveredCases))
+    return CoronaStats(newDiscoveredCases, newActualCases, newDeaths, newRecoveries, 0, newTransmission)
 
 
 def calculateCOVIDTotal(s):
@@ -387,7 +473,7 @@ def display(c):
         if ((c.stat[0].actv / c.stat[0].dcse) * 100 < 0):
             # If the Active count is negative (because of low testing and high cases), display something else (the negative values are confusing, according to stakeholder feedback).
             print(
-                f"                Active               ---                          ???     (Too low testing to determine number!)")
+                f"                Active               ---                          ???     (Testing too low to determine!)")
         else:
             print(
                 f"                Active               ---                   {c.stat[0].actv:>10}     ({(c.stat[0].actv/c.stat[0].dcse)*100:>5.2f}% Active)")
@@ -461,7 +547,7 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
     print("")  # Padding
     while True:
         neworload = input("New Game ('new') or Load Save ('load')? ")
-        if ("NEW" in neworload.upper()):
+        if ("N" in neworload.upper()):
             # The user wants to make a new game.
             print("All right! Let's get started!")
             # Let's get the user's chosen name.
@@ -487,8 +573,30 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
             player = Country(ctry, name)
             print("Done!")
             input("Press [ENTER] to continue... ")
+            print("\n")
+            print("- HOW TO PLAY ----------------------------------------------------------------------------------- IMPORTANT! -")
+            print("""
+In this game, you take on the role of a government trying to control COVID-19. 
+You do this (or not) by implementing 'measures' - restrictions, economic policies, etc. - that will influence the 5 core statistics:
+Suppression, Testing, Compliance, Happiness and Economy.
+
+You lose if:
+ - your let too many get infected (over 10 million),
+ - your Economy reaches 0 (economic collapse), or
+ - your Happiness reaches 0 (violent revolution).
+
+You win if:
+ - you keep your country running long enough to get a vaccine (between 2 and 10 years, depending on difficulty).
+
+Every turn, you have a choice of what to do. The main two options you'll use are Measures ('M') and Next Turn (ENTER).
+Each turn is 1 week, so decide wisely - a week can make a BIG difference.
+In the Measures screen, you can select which measures to implement/start enforcing. Each measure will have different effects on
+the 5 metrics, for better or for worse!
+
+Good luck!""")
+            input("Press [ENTER] to start! ")
             break
-        elif ("LOAD" in neworload.upper()):
+        elif ("L" in neworload.upper()):
             # The user wants to load an existing save.
             raise NotImplementedError
         else:
@@ -544,7 +652,7 @@ while True:
         player.msrs.insert(0, player.msrs[0])
 
     # Calculate new totals.
-    player.msrs[0] = calculateMeasures(player.msrs[0])
+    player.msrs[0] = calculateMeasures(player.msrs)
 
     # Generate new detected case/total case/death/recovery/active numbers.
     player.stat.insert(1, calculateCOVID(player.msrs, player.stat))

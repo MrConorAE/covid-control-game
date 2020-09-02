@@ -659,3 +659,40 @@ while True:
 
     # Replace the first CovidStats object (the totals) with newly calculated ones.
     player.stat[0] = calculateCOVIDTotal(player.stat)
+
+    # Check for win or lose conditions.
+    # Win: Survive until year 2022
+    # Lose: Economy or Happiness are 0
+    if (player.msrs[0].happ <= 0.001):
+        # Lose (Happiness)
+        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
+        print("""
+In a suprise attack, the citizens of your country stormed your residence and violently overthrew you.
+You have been exiled for your country, for leading them to ruin.
+
+Game over! You lost because your Happiness reached 0.""")
+        print("Thanks for playing!")
+        input("Press ENTER to exit. ")
+        sys.exit()
+    elif (player.msrs[0].econ <= 0.001):
+        # Lose (Economy)
+        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
+        print("""
+After months of economic downturn, the economy of your country has collapsed. Famine and poverty are rife.
+You have been exiled for your country, for leading them to ruin.
+
+Game over! You lost because your Economy reached 0.""")
+        print("Thanks for playing!")
+        input("Press ENTER to exit. ")
+        sys.exit()
+    elif (player.date.year == 2022):
+        # Win
+        print("- GAME OVER --------------------------------------------------------------------------------------- YOU WIN! -")
+        print("""
+After years of research, a vaccine for COVID-19 is finally discovered. Your government starts a massive vaccination campaign.
+You have finally overcome this terrible disease, and will probably go down in history!
+
+Game over! You won because you survived long enough to discover a vaccine.""")
+        print("Thanks for playing!")
+        input("Press ENTER to exit. ")
+        sys.exit()

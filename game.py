@@ -631,10 +631,12 @@ while True:
             print("Saving not available yet.")
         elif ("q" in change.lower()):
             print("Are you sure you want to quit?")
-            bye = input("Yes or No: ")
-            if ("y" in bye.lower()):
+            bye = input("Type 'y' to confirm, or anything else to cancel: ")
+            if ("y" == bye.lower()):
                 print("OK, bye!")
                 sys.exit()
+            else:
+                print("Not quitting.")
         elif (change.lower() == ""):
             print(f"Starting Turn {player.turn + 1}...")
             break

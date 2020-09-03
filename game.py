@@ -380,7 +380,7 @@ def optionChanges(o, m):
                             print("Is this the measure you want to activate?")
                             while True:
                                 confirm = input("Confirm selection (Y/N): ")
-                                if (confirm.upper() == "Y"):
+                                if ("Y" in confirm.upper()):
                                     print(
                                         f"{c.list[int(selection[1:])].name} activated!")
                                     for item in c.list:

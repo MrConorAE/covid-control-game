@@ -598,7 +598,7 @@ Good luck!""")
             break
         elif ("L" in neworload.upper()):
             # The user wants to load an existing save.
-            raise NotImplementedError
+            print("Loading save files is not available yet!")
         else:
             print("Hrm, that doesn't look like a valid option.")
             print("Please type one of the options.")

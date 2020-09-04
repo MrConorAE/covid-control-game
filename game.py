@@ -358,11 +358,11 @@ def optionChanges(o, m):
         print(
             "- Enter a Category ID (e.g. 'T') to browse the options in that category,")
         print("- Type an Option ID (e.g. 'T1') to quickly activate that option,")
-        print("- or type 'B' to exit Measure Selection and go back.")
+        print("- or just press ENTER to exit Measure Selection and go back.")
         print("")
         selection = input("Category or ID: ")
         print("\n")
-        if selection.lower() == "b":
+        if selection == "":
             print("Exiting measure selection.")
             break
         elif (re.search("^([A-Z][0-9]+)$", selection, re.IGNORECASE) != None):
@@ -426,8 +426,63 @@ def optionChanges(o, m):
                             print(
                                 f"({selection.upper()}{n}) {i.name} {'[ACTIVE]' if i.actv else ''}\n     {i.desc}")
                             n = n + 1
-                        input("Press ENTER to go back to the categories list.")
-                        break
+                        selection = input(
+                            "Enter an ID to activate it, or press ENTER to go back: ")
+                        if (re.search("^([A-Z][0-9]+)$", selection, re.IGNORECASE) != None):
+                            # This regular expression searches for Option IDs only (letter and a number).
+                            catNo = 0
+                            for c in o:
+                                # Get category first
+                                if c.key == selection[0].upper():
+                                    # Check if there are any items in the category
+                                    if (len(c.list) > 0):
+                                        # If yes, check if the item specified exists
+                                        if (len(c.list) > int(selection[1:])):
+                                            print(
+                                                f"({selection.upper()}) {c.list[int(selection[1:])].name}\n     {c.list[int(selection[1:])].desc}")
+                                            print(
+                                                "Is this the measure you want to activate?")
+                                            while True:
+                                                confirm = input(
+                                                    "Confirm selection (Y/N): ")
+                                                if ("Y" in confirm.upper()):
+                                                    print(
+                                                        f"{c.list[int(selection[1:])].name} activated!")
+                                                    for item in c.list:
+                                                        item.actv = False
+                                                    c.list[int(
+                                                        selection[1:])].actv = True
+                                                    newMeasures.optn[catNo] = c.list[int(
+                                                        selection[1:])]
+                                                    break
+                                                else:
+                                                    print(
+                                                        f"Cancelled. {c.list[int(selection[1:])].name} was not activated.")
+                                                    input(
+                                                        "Press ENTER to go back to the categories list.")
+                                                    break
+                                        else:
+                                            print(
+                                                f"That option ({selection.upper()}) does not exist. Please try again.")
+                                            input(
+                                                "Press ENTER to go back to the categories list.")
+                                            break
+                                    else:
+                                        # If no, say so
+                                        print(
+                                            f"There are no options in the {c.title} category.")
+                                        input(
+                                            "Press ENTER to go back to the categories list.")
+                                        break
+                                else:
+                                    catNo = catNo + 1
+                                    continue
+                                    input(
+                                        "Press ENTER to go back to the categories list.")
+                                    break
+                        else:
+                            print("Going back to Category list.")
+                            break
                     else:
                         # If no, say so
                         print(
@@ -581,7 +636,6 @@ You do this (or not) by implementing 'measures' - restrictions, economic policie
 Suppression, Testing, Compliance, Happiness and Economy.
 
 You lose if:
- - your let too many get infected (over 10 million),
  - your Economy reaches 0 (economic collapse), or
  - your Happiness reaches 0 (violent revolution).
 
@@ -592,6 +646,17 @@ Every turn, you have a choice of what to do. The main two options you'll use are
 Each turn is 1 week, so decide wisely - a week can make a BIG difference.
 In the Measures screen, you can select which measures to implement/start enforcing. Each measure will have different effects on
 the 5 metrics, for better or for worse!
+
+IMPORTANT NOTE: 
+There are 2 case statistics: actual cases and discovered cases.
+Actual Cases is the real number of cases in the community.
+Discovered Cases is a proportion of your Active Cases based on your Testing statistic - this means that if you have litle or
+no testing, you will see little or no cases!
+
+Tips:
+ - Increase your Testing early.
+ - Watch your Economy and Happiness.
+ - Your restrictions are only effective if people are Compliant.
 
 Good luck!""")
             input("Press [ENTER] to start! ")

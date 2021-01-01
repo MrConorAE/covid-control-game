@@ -25,6 +25,15 @@ import sys
 # This section defines the various data structures/classes used to store and manage data in this program.
 
 
+class Difficulties:
+    # This class describes the different difficulties the player can choose from.
+    def __init__(self, e, n, h, i):
+        self.e = e
+        self.n = n
+        self.h = h
+        self.i = i
+
+
 class Option:
     # This class describes an option the player can "activate" (start enforcing).
     def __init__(self, C, n, d, s, t, c, h, e):
@@ -71,9 +80,10 @@ class CoronaStats:
 
 class Country:
     # This class represents the player (as the country they are governing). It stores the player's information.
-    def __init__(self, n, l):
+    def __init__(self, n, l, d):
         self.ctry = n
         self.name = l
+        self.diff = d
     msrs = [Measures([Option("R", "None", "No restrictions at all.",
                              0, 0, 0, -0.1, 0),
                       Option("E", "None", "No economic policies in effect.",
@@ -224,6 +234,13 @@ names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "B
 countries = ["Tacxoem", "Guitu", "Markuin Isles", "Alza",
              "Befolk", "North Hongland", "Ofmai", "Pagrice", "Stanri"]
 
+# Difficulties
+difficulty = Difficulties(1.5, 2.5, 3.5, 5)
+# Easy    = 1.5x
+# Normal  = 2.5x
+# Hard    = 3.5x
+# Insane  = 5.0x
+
 # FUNCTIONS #######################################################################################
 # These are functions that do things! (Wow! Who knew?)
 
@@ -287,8 +304,8 @@ def calculateCOVID(m, s):
     deaths = lastCovid.dead
     recoveries = lastCovid.recv
     active = lastCovid.actv
-    # This is the maximum multiplier. Adjust as neccesary for difficulty or tuning.
-    maxR = 2.5
+    # This is the maximum multiplier, adjusted by chosen difficulty.
+    maxR = player.diff
     # Calculate a case multiplier.
     # 5 - (Suppression * (Compliance / 100)) / 20
     multiplier = maxR - (m[2].supp *
@@ -623,9 +640,28 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
                 print(f"{ctry}!")
             else:
                 print(f"OK, {ctry} it is!")
+            # Finally, get their difficulty choices.
+            diff = input(
+                "Finally, choose a difficulty - Easy ('e'), Normal ('n'), Hard ('h'), or INSANE ('i') - or type anything else for Normal: ")
+            if (diff == "e"):
+                print("Okay, this game will be Easy difficulty.")
+                maxR = difficulty.e
+            elif (diff == "n"):
+                print("This game will be Normal difficulty.")
+                maxR = difficulty.n
+            elif (diff == "h"):
+                print("Okay.... this game will be Hard difficulty!")
+                maxR = difficulty.h
+            elif (diff == "i"):
+                print(
+                    "You'll probably regret that. This game will be INSANE difficulty!!")
+                maxR = difficulty.i
+            else:
+                print("You typed something else, so Normal was selected.")
+                maxR = difficulty.n
             # Generate a profile.
-            print("Generating your game...")
-            player = Country(ctry, name)
+            print("\nGenerating your game... this should only take a moment.")
+            player = Country(ctry, name, maxR)
             print("Done!")
             input("Press [ENTER] to continue... ")
             print("\n")

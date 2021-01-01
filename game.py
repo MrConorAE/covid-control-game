@@ -304,9 +304,9 @@ def calculateCOVID(m, s):
     # Calculate a transmission rate, checking for 0 (ZeroDivisionError)!
     try:
         newTransmission = (newDiscoveredCases /
-                           discoveredCases) if (discoveredCases == 0) else 0.001
+                           discoveredCases) if (discoveredCases != 0) else 0.001
     except ZeroDivisionError:
-        newTransmission = 0.001
+        newTransmission = newDiscoveredCases
     # Return all of these new numbers in a new CovidStats object.
     return CoronaStats(newDiscoveredCases, newActualCases, newDeaths, newRecoveries, 0, newTransmission)
 
@@ -735,7 +735,7 @@ while True:
         print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
         print("""
 In a suprise attack, the citizens of your country stormed your residence and violently overthrew you.
-You have been exiled for your country, for leading them to ruin.
+You have been exiled from your country, for leading them to ruin.
 
 Game over! You lost because your Happiness reached 0.""")
         print("Thanks for playing!")
@@ -746,9 +746,20 @@ Game over! You lost because your Happiness reached 0.""")
         print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
         print("""
 After months of economic downturn, the economy of your country has collapsed. Famine and poverty are rife.
-You have been exiled for your country, for leading them to ruin.
+You have been exiled from your country, for leading them to ruin.
 
 Game over! You lost because your Economy reached 0.""")
+        print("Thanks for playing!")
+        input("Press ENTER to exit. ")
+        sys.exit()
+    elif (player.stat[0].tcse >= 1000000):
+        # Lose (Economy)
+        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
+        print("""
+After millions of deaths from this virus, the people of your country have had enough. Hospitals are overflowing, and the dead line the streets.
+You have been exiled from your country, for leading them to ruin.
+
+Game over! You lost because your Cases got over 1,000,000.""")
         print("Thanks for playing!")
         input("Press ENTER to exit. ")
         sys.exit()

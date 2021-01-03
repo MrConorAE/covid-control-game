@@ -16,6 +16,10 @@ import math
 import re
 # Import the 'sys' module - for interacting with the system.
 import sys
+# Import the 'pickle' module - for importing and exporting save files
+import pickle
+# Import the 'glob' module - for finding and processing files
+import glob
 
 # NOTE ABOUT THE NUMBER 0/0.001: ##################################################################
 # To avoid ZeroDivisionErrors, anywhere the value 0 may be used, 0.001 may be used instead. As the display is only to 2dp, it makes a neglegible difference.
@@ -699,7 +703,47 @@ Good luck!""")
             break
         elif ("L" in neworload.upper()):
             # The user wants to load an existing save.
-            print("Loading save files is not available yet!")
+            print("Save files found:")
+            for savefile in (glob.glob('*.cov')):
+                print(f"- {savefile}")
+            loadedsave = ""
+            loaded = False
+            # Get savefile name
+            while True:
+                loadedsave = input(
+                    "Please enter a savefile name (with extension) to load, or leave blank to cancel: ")
+                if (loadedsave == ""):
+                    # If blank, cancel
+                    print("Cancelling...")
+                    break
+                else:
+                    try:
+                        # Attempt to find and load file.
+                        with open(loadedsave, 'rb') as save:
+                            player = pickle.load(save)
+                        print("Game loaded!")
+                        print(
+                            f"Name: {player.name}, Country: {player.ctry}, In-Game Date: {player.date}.")
+                        loaded = True
+                        input("Press [ENTER] to start... ")
+                        break
+                    except FileNotFoundError:
+                        # File does not exist
+                        print(
+                            "Could not load game! That savefile does not exist. Please try again.")
+                        input("Press [ENTER] to continue... ")
+                    except PermissionError:
+                        # No permissions
+                        print(
+                            "Could not load game! You do not have permission to read or access this savefile. Please try again.")
+                        input("Press [ENTER] to continue... ")
+                    except:
+                        # Unknown error
+                        print(
+                            "Could not load game! That file is invalid. Ensure that it is a valid .cov save, and that you have permissions to access it.")
+                        input("Press [ENTER] to continue... ")
+            if (loaded == True):
+                break
         else:
             print("Hrm, that doesn't look like a valid option.")
             print("Please type one of the options.")
@@ -727,10 +771,58 @@ while True:
         change = input(
             "Modify Measures ('M'), Save ('S'), Quit ('Q') or Next Turn (ENTER): ")
         if ("m" in change.lower()):
+            # Chose to change measures.
             ochanges = optionChanges(options, player.msrs)
         elif ("s" in change.lower()):
-            print("Saving not available yet.")
+            # Chose to save.
+            print("Saving your game...")
+            name = ""
+            while True:
+                # Get a name for the savefile
+                name = input("Please enter a name for your save file: ")
+                if (name == ""):
+                    print("Please enter a name.")
+                else:
+                    break
+            # Finally, write to file.
+            try:
+                with open((name + ".cov"), 'xb') as save:
+                    pickle.dump(player, save)
+                    print("Game saved successfully.")
+            except FileExistsError:
+                while True:
+                    # File already exists, ask for overwrite
+                    overwrite = input(
+                        "A file already exists with that name. Do you want to overwrite it (yes/no)? ")
+                    if (overwrite == "yes"):
+                        print(f"Overwriting {name}...")
+                        try:
+                            # If they approve an overwrite, start again with 'W' (overwrite) mode instead
+                            with open((name + ".cov"), 'wb') as save:
+                                pickle.dump(player, save)
+                                print("Game saved successfully!")
+                                input("Press [ENTER] to continue... ")
+                            break
+                        except PermissionError:
+                            print(
+                                "Could not save game! You do not have permission to write or create this file. Please try again.")
+                            input("Press [ENTER] to continue... ")
+                            pass
+                        except:
+                            print(
+                                "Could not save game! Ensure you have permissions, and that no other programs are using the file.")
+                            input("Press [ENTER] to continue... ")
+                            pass
+                    else:
+                        print("Not overwriting, save cancelled!")
+                        break
+            except:
+                print(
+                    "Could not save game! Ensure you have permissions, and that no other programs are using the file.")
+                input("Press [ENTER] to continue... ")
+                pass
         elif ("q" in change.lower()):
+            # Chose to quit.
             print("Are you sure you want to quit?")
             bye = input("Type 'y' to confirm, or anything else to cancel: ")
             if ("y" == bye.lower()):
@@ -739,6 +831,7 @@ while True:
             else:
                 print("Not quitting.")
         elif (change.lower() == ""):
+            # Chose to continue.
             print(f"Starting Turn {player.turn + 1}...")
             break
         else:

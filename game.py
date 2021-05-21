@@ -272,6 +272,8 @@ def calculateMeasures(m):
         h = h * 0.9
     elif (e > 75):
         h = h * 1.1
+    # Apply a +/- multiplier to Happiness if Cases are high/low, respectively
+    h = h * (1 - (player.stat[0].dcse / 100000))
     # For each metric, if it's higher than 100 or lower than 0, "level" it
     s = s if s > 0 else 0.001
     s = s if s < 100 else 100
@@ -523,7 +525,7 @@ def optionChanges(o, m):
 
 
 def display(c):
-    # This function is based on the development prototype found in display.py. It has been modified (singnificantly) to
+    # This function is based on the development prototype found in display.py. It has been modified (significantly) to
     # operate with the new data structure used in this version.
     #
     # This function prints out a human-readable "summary" of information (statistics, metrics) for the player to use.
@@ -690,7 +692,7 @@ the 5 metrics, for better or for worse!
 IMPORTANT NOTE: 
 There are 2 case statistics: actual cases and discovered cases.
 Actual Cases is the real number of cases in the community.
-Discovered Cases is a proportion of your Active Cases based on your Testing statistic - this means that if you have litle or
+Discovered Cases is a proportion of your Active Cases based on your Testing statistic - this means that if you have little or
 no testing, you will see little or no cases!
 
 Tips:
@@ -754,7 +756,7 @@ Good luck!""")
 init()
 
 # MAIN GAME LOOP ##################################################################################
-# This is the main loop of the game; where player input is recieved and processed. All the other functions are called from here.
+# This is the main loop of the game; where player input is received and processed. All the other functions are called from here.
 while True:
     # Increment the turn counter and date
     player.turn = player.turn + 1

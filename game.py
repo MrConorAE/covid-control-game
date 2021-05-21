@@ -25,6 +25,85 @@ import glob
 # To avoid ZeroDivisionErrors, anywhere the value 0 may be used, 0.001 may be used instead. As the display is only to 2dp, it makes a neglegible difference.
 # The code has been modified to also account for this (i.e. doing calculations with 0, but replacing with 0.001 if the result is 0).
 
+# COLOUR FORMATTING CODES ##########################################################################
+# This class contains colour formatting codes for ANSI-supporting terminals.
+
+
+class ColoursOn:
+    r = '\033[0m'
+    bold = '\033[01m'
+    disable = '\033[02m'
+    underline = '\033[04m'
+    reverse = '\033[07m'
+    strikethrough = '\033[09m'
+    invisible = '\033[08m'
+
+    class f:
+        black = '\033[30m'
+        red = '\033[31m'
+        green = '\033[32m'
+        orange = '\033[33m'
+        blue = '\033[34m'
+        purple = '\033[35m'
+        cyan = '\033[36m'
+        darkgrey = '\033[37m'
+        darkgrey = '\033[90m'
+        lightred = '\033[91m'
+        lightgreen = '\033[92m'
+        yellow = '\033[93m'
+        lightblue = '\033[94m'
+        pink = '\033[95m'
+        lightcyan = '\033[96m'
+
+    class b:
+        black = '\033[40m'
+        red = '\033[41m'
+        green = '\033[42m'
+        orange = '\033[43m'
+        blue = '\033[44m'
+        purple = '\033[45m'
+        cyan = '\033[46m'
+        darkgrey = '\033[47m'
+
+# If colours are disabled, the Colours class is replaced with this to avoid errors or weird characters showing up in terminals.
+
+
+class ColoursOff:
+    r = ''
+    bold = ''
+    disable = ''
+    underline = ''
+    reverse = ''
+    strikethrough = ''
+    invisible = ''
+
+    class f:
+        black = ''
+        red = ''
+        green = ''
+        orange = ''
+        blue = ''
+        purple = ''
+        cyan = ''
+        darkgrey = ''
+        darkgrey = ''
+        lightred = ''
+        lightgreen = ''
+        yellow = ''
+        lightblue = ''
+        pink = ''
+        lightcyan = ''
+
+    class b:
+        black = ''
+        red = ''
+        green = ''
+        orange = ''
+        blue = ''
+        purple = ''
+        cyan = ''
+        darkgrey = ''
+
 # DATA STRUCTURES #################################################################################
 # This section defines the various data structures/classes used to store and manage data in this program.
 
@@ -122,8 +201,8 @@ class Country:
                              0, 0, 0, -0.1, 0)],
                      0, 0, 90, 50, 50)]
     # The first item in this array is the totals.
-    stat = [CoronaStats(1, 100, 0, 0, 1, 1),
-            CoronaStats(1, 100, 0, 0, 1, 1),
+    stat = [CoronaStats(1, 1, 0, 0, 1, 1),
+            CoronaStats(1, 1, 0, 0, 1, 1),
             CoronaStats(0, 0, 0, 0, 1, 1)]
     turn = 0
     date = datetime.datetime(2020, 1, 1)
@@ -237,6 +316,9 @@ names = ["Lewis", "Mark", "Tim", "Chris", "Theodore", "Charlie", "Alexander", "B
 # Countries (generated randomly, fictitious) for when the user doesn't want to pick one.
 countries = ["Tacxoem", "Guitu", "Markuin Isles", "Alza",
              "Befolk", "North Hongland", "Ofmai", "Pagrice", "Stanri"]
+# Colour support toggle - off by default.
+enablecolour = False
+cl = ColoursOn()
 
 # Difficulties
 difficulty = Difficulties(1.5, 2.5, 3.5, 5)
@@ -272,8 +354,6 @@ def calculateMeasures(m):
         h = h * 0.9
     elif (e > 75):
         h = h * 1.1
-    # Apply a +/- multiplier to Happiness if Cases are high/low, respectively
-    h = h * (1 - (player.stat[0].dcse / 100000))
     # For each metric, if it's higher than 100 or lower than 0, "level" it
     s = s if s > 0 else 0.001
     s = s if s < 100 else 100
@@ -372,21 +452,23 @@ def optionChanges(o, m):
     newMeasures = m[0]
     while True:
         print("\n\n")
-        print("- MEASURE SELECTION ------------------------------------------------------------------------------------------")
+        print(f"{cl.b.cyan}{cl.f.black}- MEASURE SELECTION ------------------------------------------------------------------------------------------{cl.r}")
         print("Categories:")
         for c in o:
             print(f"({c.key}) {c.title} - {len(c.list)} option(s)")
         print("")
         print("You can:")
         print(
-            "- Enter a Category ID (e.g. 'T') to browse the options in that category,")
-        print("- Type an Option ID (e.g. 'T1') to quickly activate that option,")
-        print("- or just press ENTER to exit Measure Selection and go back.")
+            f"- Enter a Category ID (e.g. 'T') to {cl.f.cyan}browse the options in that category{cl.r},")
+        print(
+            f"- Type an Option ID (e.g. 'T1') to {cl.f.green}quickly activate that option{cl.r},")
+        print(
+            f"- or just press ENTER to {cl.f.red}exit Measure Selection and go back{cl.r}.")
         print("")
-        selection = input("Category or ID: ")
+        selection = input(f"{cl.f.cyan}Category or ID: {cl.r}")
         print("\n")
         if selection == "":
-            print("Exiting measure selection.")
+            print(f"{cl.f.red}Exiting measure selection.{cl.r}")
             break
         elif (re.search("^([A-Z][0-9]+)$", selection, re.IGNORECASE) != None):
             # This regular expression searches for Option IDs only (letter and a number).
@@ -402,10 +484,11 @@ def optionChanges(o, m):
                                 f"({selection.upper()}) {c.list[int(selection[1:])].name}\n     {c.list[int(selection[1:])].desc}")
                             print("Is this the measure you want to activate?")
                             while True:
-                                confirm = input("Confirm selection (Y/N): ")
+                                confirm = input(
+                                    f"{cl.f.cyan}Confirm selection ({cl.f.green}Y{cl.f.cyan}/{cl.f.red}N{cl.f.cyan}): {cl.r}")
                                 if ("Y" in confirm.upper()):
                                     print(
-                                        f"{c.list[int(selection[1:])].name} activated!")
+                                        f"{cl.f.green}{c.list[int(selection[1:])].name} activated!{cl.r}")
                                     for item in c.list:
                                         item.actv = False
                                     c.list[int(selection[1:])].actv = True
@@ -414,20 +497,20 @@ def optionChanges(o, m):
                                     break
                                 else:
                                     print(
-                                        f"Cancelled. {c.list[int(selection[1:])].name} was not activated.")
+                                        f"{cl.f.red}Cancelled.{cl.r} {c.list[int(selection[1:])].name} was not activated.")
                                     input(
                                         "Press ENTER to go back to the categories list.")
                                     break
                         else:
                             print(
-                                f"That option ({selection.upper()}) does not exist. Please try again.")
+                                f"{cl.f.red}That option ({selection.upper()}) does not exist.{cl.r} Please try again.")
                             input(
                                 "Press ENTER to go back to the categories list.")
                             break
                     else:
                         # If no, say so
                         print(
-                            f"There are no options in the {c.title} category.")
+                            f"{cl.f.red}There are no options in the {c.title} category.{cl.r}")
                         input("Press ENTER to go back to the categories list.")
                         break
                 else:
@@ -447,10 +530,10 @@ def optionChanges(o, m):
                         print(f"Options in {c.title} category:\n")
                         for i in c.list:
                             print(
-                                f"({selection.upper()}{n}) {i.name} {'[ACTIVE]' if i.actv else ''}\n     {i.desc}")
+                                f"({selection.upper()}{n}) {i.name} {f'{cl.f.green}[ACTIVE]{cl.r}' if i.actv else ''}\n     {i.desc}")
                             n = n + 1
                         selection = input(
-                            "Enter an ID to activate it, or press ENTER to go back: ")
+                            f"{cl.f.cyan}Enter an ID to activate it, or press ENTER to go back: {cl.r}")
                         if (re.search("^([A-Z][0-9]+)$", selection, re.IGNORECASE) != None):
                             # This regular expression searches for Option IDs only (letter and a number).
                             catNo = 0
@@ -467,10 +550,10 @@ def optionChanges(o, m):
                                                 "Is this the measure you want to activate?")
                                             while True:
                                                 confirm = input(
-                                                    "Confirm selection (Y/N): ")
+                                                    f"{cl.f.cyan}Confirm selection ({cl.f.green}Y{cl.f.cyan}/{cl.f.red}N{cl.f.cyan}): {cl.r}")
                                                 if ("Y" in confirm.upper()):
                                                     print(
-                                                        f"{c.list[int(selection[1:])].name} activated!")
+                                                        f"{cl.f.green}{c.list[int(selection[1:])].name} activated!{cl.r}")
                                                     for item in c.list:
                                                         item.actv = False
                                                     c.list[int(
@@ -480,20 +563,20 @@ def optionChanges(o, m):
                                                     break
                                                 else:
                                                     print(
-                                                        f"Cancelled. {c.list[int(selection[1:])].name} was not activated.")
+                                                        f"{cl.f.red}Cancelled.{cl.r} {c.list[int(selection[1:])].name} was not activated.")
                                                     input(
                                                         "Press ENTER to go back to the categories list.")
                                                     break
                                         else:
                                             print(
-                                                f"That option ({selection.upper()}) does not exist. Please try again.")
+                                                f"{cl.f.red}That option ({selection.upper()}) does not exist.{cl.r} Please try again.")
                                             input(
                                                 "Press ENTER to go back to the categories list.")
                                             break
                                     else:
                                         # If no, say so
                                         print(
-                                            f"There are no options in the {c.title} category.")
+                                            f"{cl.f.red}There are no options in the {c.title} category.{cl.r}")
                                         input(
                                             "Press ENTER to go back to the categories list.")
                                         break
@@ -509,15 +592,16 @@ def optionChanges(o, m):
                     else:
                         # If no, say so
                         print(
-                            f"There are no options in the {c.title} category.")
+                            f"{cl.f.red}There are no options in the {c.title} category.{cl.r}")
                         input("Press ENTER to go back to the categories list.")
                         break
             if not found:
-                print(f"That category ({selection.upper()}) does not exist.")
+                print(
+                    f"{cl.f.red}That category ({selection.upper()}) does not exist.{cl.r}")
                 input("Press ENTER to go back to the categories list.")
         else:
             print(
-                f"'{selection}' doesn't look like a valid ID. Please try again.")
+                f"{cl.f.red}'{selection}' doesn't look like a valid ID.{cl.r} Please try again.")
             input("Press ENTER to go back to the categories list.")
             break
     # Calculate the new totals and return.
@@ -537,11 +621,12 @@ def display(c):
         print("\n\n")
         # Print the turn number, date and player name.
         print(
-            f"TURN {c.turn:>3} - DATE {c.date.day:02}/{c.date.month:02}/{c.date.year:04} - Prime Minister of {c.ctry}, {c.name}")
+            f"{cl.f.cyan}TURN {c.turn:>3} - DATE {c.date.day:02}/{c.date.month:02}/{c.date.year:04} - Prime Minister of {c.ctry}, {c.name}{cl.r}")
         print("- CORONAVIRUS STATISTICS -------------------------------------------------------------------------------------")
         # Print the COVID-19 statistics.
         # WARNING: Item 0 is the totals, Item 1+ are the biweekly values!
-        print(f"              STATISTIC                THIS TURN                 TOTAL")
+        print(
+            f"{cl.f.cyan}              STATISTIC                THIS TURN                 TOTAL{cl.r}")
         print(
             f"                 Cases               {c.stat[1].dcse:>+10}            {c.stat[0].dcse:>10}")
         print(
@@ -551,7 +636,7 @@ def display(c):
         if ((c.stat[0].actv / c.stat[0].dcse) * 100 < 0):
             # If the Active count is negative (because of low testing and high cases), display something else (the negative values are confusing, according to stakeholder feedback).
             print(
-                f"                Active               ---                          ???     (Testing too low to determine!)")
+                f"                Active               ---                          ???     (Your Testing Rate is too low! Increase it to calculate Active cases.)")
         else:
             print(
                 f"                Active               ---                   {c.stat[0].actv:>10}     ({(c.stat[0].actv/c.stat[0].dcse)*100:>5.2f}% Active)")
@@ -559,19 +644,19 @@ def display(c):
         print("- RATINGS/STATUS ---------------------------------------------------------------------------------------------")
         # Print the Ratings (transmission, testing, suppression, happiness, compliance, economy)
         # WARNING: Item 0+ are the biweekly values!
-        print(f"                METRIC                THIS TURN                CHANGE        as %")
+        print(f"{cl.f.cyan}                METRIC                THIS TURN                CHANGE        as %{cl.r}")
         print(
-            f"     Transmission Rate               {c.stat[1].inft:>10.2f}            {(c.stat[1].inft-c.stat[2].inft):>+10.2f} {((c.stat[1].inft-c.stat[2].inft)/c.stat[2].inft)*100:>+10.2f}%")
+            f"     Transmission Rate               {c.stat[1].inft:>10.2f}            {cl.f.green if (c.stat[1].inft-c.stat[2].inft)<0 else (cl.f.red if (c.stat[1].inft-c.stat[2].inft)>0 else cl.f.darkgrey)}{(c.stat[1].inft-c.stat[2].inft):>+10.2f} {((c.stat[1].inft-c.stat[2].inft)/c.stat[2].inft)*100:>+10.2f}%{cl.r}")
         print(
-            f"          Testing Rate               {c.msrs[0].test:>10.2f}            {(c.msrs[0].test-c.msrs[1].test):>+10.2f} {((c.msrs[0].test-c.msrs[1].test)/c.msrs[1].test)*100:>+10.2f}%")
+            f"          Testing Rate               {c.msrs[0].test:>10.2f}            {cl.f.red if (c.msrs[0].test-c.msrs[1].test)<0 else (cl.f.green if (c.msrs[0].test-c.msrs[1].test)>0 else cl.f.darkgrey)}{(c.msrs[0].test-c.msrs[1].test):>+10.2f} {((c.msrs[0].test-c.msrs[1].test)/c.msrs[1].test)*100:>+10.2f}%{cl.r}")
         print(
-            f"    Suppression Rating               {c.msrs[0].supp:>10.2f}%           {(c.msrs[0].supp-c.msrs[1].supp):>+10.2f} {((c.msrs[0].supp-c.msrs[1].supp)/c.msrs[1].supp)*100:>+10.2f}%")
+            f"    Suppression Rating               {c.msrs[0].supp:>10.2f}%           {cl.f.red if (c.msrs[0].supp-c.msrs[1].supp)<0 else (cl.f.green if (c.msrs[0].supp-c.msrs[1].supp)>0 else cl.f.darkgrey)}{(c.msrs[0].supp-c.msrs[1].supp):>+10.2f} {((c.msrs[0].supp-c.msrs[1].supp)/c.msrs[1].supp)*100:>+10.2f}%{cl.r}")
         print(
-            f"     Citizen Happiness               {c.msrs[0].happ:>10.2f}%           {(c.msrs[0].happ-c.msrs[1].happ):>+10.2f} {((c.msrs[0].happ-c.msrs[1].happ)/c.msrs[1].happ)*100:>+10.2f}%")
+            f"     Citizen Happiness               {c.msrs[0].happ:>10.2f}%           {cl.f.red if (c.msrs[0].happ-c.msrs[1].happ)<0 else (cl.f.green if (c.msrs[0].happ-c.msrs[1].happ)>0 else cl.f.darkgrey)}{(c.msrs[0].happ-c.msrs[1].happ):>+10.2f} {((c.msrs[0].happ-c.msrs[1].happ)/c.msrs[1].happ)*100:>+10.2f}%{cl.r}")
         print(
-            f"            Compliance               {c.msrs[0].comp:>10.2f}%           {(c.msrs[0].comp-c.msrs[1].comp):>+10.2f} {((c.msrs[0].comp-c.msrs[1].comp)/c.msrs[1].comp)*100:>+10.2f}%")
+            f"            Compliance               {c.msrs[0].comp:>10.2f}%           {cl.f.red if (c.msrs[0].comp-c.msrs[1].comp)<0 else (cl.f.green if (c.msrs[0].comp-c.msrs[1].comp)>0 else cl.f.darkgrey)}{(c.msrs[0].comp-c.msrs[1].comp):>+10.2f} {((c.msrs[0].comp-c.msrs[1].comp)/c.msrs[1].comp)*100:>+10.2f}%{cl.r}")
         print(
-            f"       Economic Rating               {c.msrs[0].econ:>10.2f}%           {(c.msrs[0].econ-c.msrs[1].econ):>+10.2f} {((c.msrs[0].econ-c.msrs[1].econ)/c.msrs[1].econ)*100:>+10.2f}%")
+            f"       Economic Rating               {c.msrs[0].econ:>10.2f}%           {cl.f.red if (c.msrs[0].econ-c.msrs[1].econ)<0 else (cl.f.green if (c.msrs[0].econ-c.msrs[1].econ)>0 else cl.f.darkgrey)}{(c.msrs[0].econ-c.msrs[1].econ):>+10.2f} {((c.msrs[0].econ-c.msrs[1].econ)/c.msrs[1].econ)*100:>+10.2f}%{cl.r}")
     except (ZeroDivisionError):
         pass
 
@@ -582,7 +667,18 @@ def display(c):
 def init():
     global player
     global options
-    print("""
+    global cl
+    # Colour enable check.
+    print(
+        f"Do you want to enable colours?\nOnly enable colours if your terminal supports it, or you'll see a lot of weird control characters everywhere.\nColour support test: colour is supported if this text {cl.f.red}appears in red{cl.f.green} and this in green{cl.r}.")
+    confirmcolour = input("Enable colour (y/n)? ").lower()
+    if (confirmcolour[0] == "y"):
+        # Enable colour.
+        cl = ColoursOn()
+    else:
+        # Disable colour.
+        cl = ColoursOff()
+    print(f"""{cl.f.cyan}
 ======================================================================# WELCOME TO #===================================================================
 
       ::::::::    ::::::::   :::     :::  :::::::::::  :::::::::          ::::::::    ::::::::   ::::    :::  :::::::::::  :::::::::    ::::::::   :::
@@ -594,7 +690,7 @@ def init():
 ########    ########       ###      ###########  #########          ########    ########   ###    ####      ###      ###    ###   ########   ##########
 
 =======================================================================================================================================================
-
+{cl.r}
 It's the year 2019, on the planet Earth.
 
 Somewhere in Wuhan, China, someone buys a bat from a wet market.
@@ -611,26 +707,27 @@ Oh wait - you, as their second-in-command, need to step up to fill the role.
 
 Only problem is, YOU now have to control this deadly infection, and keep your country running...
 
-                                                                        - * # * -
+                                                                        {cl.f.cyan}- * # * -{cl.r}
 
 You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
 """)
-    input("Press [ENTER] to continue... ")
+    input(f"{cl.f.cyan}Press [ENTER] to continue... {cl.r}")
     # Padding
-    print("--------------------------------------------------------------------------------------------------------------")
+    print(f"{cl.f.darkgrey}--------------------------------------------------------------------------------------------------------------{cl.r}")
     print("Right. Now that we've got the backstory out of the way, let's get this game started!")
     print("")  # Padding
     print("First things first: Do you want to create a new game, or load an existing one?")
     print("(Note: if you've never played before, you want to select New Game.)")
     print("")  # Padding
     while True:
-        neworload = input("New Game ('new') or Load Save ('load')? ")
+        neworload = input(
+            f"{cl.f.cyan}New Game ('new') or Load Save ('load')? {cl.r}")
         if ("N" in neworload.upper()):
             # The user wants to make a new game.
             print("All right! Let's get started!")
             # Let's get the user's chosen name.
             name = input(
-                "First of all, let's get your leader's name (or leave blank for a random one): ")
+                f"First of all, let's get your {cl.f.cyan}leader's name{cl.r} (or leave blank for a random one): ")
             if (name == ""):
                 print("Random name coming right up. Your name is...")
                 name = random.choice(names)
@@ -639,7 +736,7 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
                 print(f"Hello, {name}!")
             # Now let's get the user's country.
             ctry = input(
-                "Next, pick a country to 'lead' (or, again, leave blank for a random one): ")
+                f"Next, {cl.f.cyan}pick a country to 'lead'{cl.r} (or, again, leave blank for a random one): ")
             if (ctry == ""):
                 print("Random country coming right up. Your nation is...")
                 ctry = random.choice(countries)
@@ -648,40 +745,43 @@ You wake up. It's 6:30am on the 1st of March, 2020 - your first day as leader.
                 print(f"OK, {ctry} it is!")
             # Finally, get their difficulty choices.
             diff = input(
-                "Finally, choose a difficulty - Easy ('e'), Normal ('n'), Hard ('h'), or INSANE ('i') - or type anything else for Normal: ")
+                f"Finally, {cl.f.cyan}choose a difficulty{cl.r} - {cl.f.green}Easy ('e'){cl.r}, {cl.f.cyan}Normal ('n'){cl.r}, {cl.f.orange}Hard ('h'){cl.r}, or {cl.f.red}INSANE ('i'){cl.r} - or type anything else for Normal: ")
             if (diff == "e"):
-                print("Okay, this game will be Easy difficulty.")
+                print(
+                    f"Okay, this game will be {cl.f.green}Easy{cl.r} difficulty.")
                 maxR = difficulty.e
             elif (diff == "n"):
-                print("This game will be Normal difficulty.")
+                print(f"This game will be {cl.f.cyan}Normal{cl.r} difficulty.")
                 maxR = difficulty.n
             elif (diff == "h"):
-                print("Okay.... this game will be Hard difficulty!")
+                print(
+                    f"Okay.... this game will be {cl.f.orange}Hard{cl.r} difficulty!")
                 maxR = difficulty.h
             elif (diff == "i"):
                 print(
-                    "You'll probably regret that. This game will be INSANE difficulty!!")
+                    f"You'll probably regret that. This game will be {cl.f.red}INSANE{cl.r} difficulty!!")
                 maxR = difficulty.i
             else:
-                print("You typed something else, so Normal was selected.")
+                print(
+                    f"You typed something else, so {cl.f.cyan}Normal{cl.r} was selected.")
                 maxR = difficulty.n
             # Generate a profile.
             print("\nGenerating your game... this should only take a moment.")
             player = Country(ctry, name, maxR)
             print("Done!")
-            input("Press [ENTER] to continue... ")
+            input(f"{cl.f.cyan}Press [ENTER] to continue... {cl.r}")
             print("\n")
-            print("- HOW TO PLAY ----------------------------------------------------------------------------------- IMPORTANT! -")
-            print("""
+            print(f"{cl.f.black}{cl.b.cyan}- HOW TO PLAY ----------------------------------------------------------------------------------- IMPORTANT! -{cl.r}")
+            print(f"""
 In this game, you take on the role of a government trying to control COVID-19. 
 You do this (or not) by implementing 'measures' - restrictions, economic policies, etc. - that will influence the 5 core statistics:
 Suppression, Testing, Compliance, Happiness and Economy.
 
-You lose if:
+{cl.f.red}You lose if:{cl.r}
  - your Economy reaches 0 (economic collapse), or
  - your Happiness reaches 0 (violent revolution).
 
-You win if:
+{cl.f.green}You win if:{cl.r}
  - you keep your country running long enough to get a vaccine (between 2 and 10 years, depending on difficulty).
 
 Every turn, you have a choice of what to do. The main two options you'll use are Measures ('M') and Next Turn (ENTER).
@@ -689,8 +789,8 @@ Each turn is 1 week, so decide wisely - a week can make a BIG difference.
 In the Measures screen, you can select which measures to implement/start enforcing. Each measure will have different effects on
 the 5 metrics, for better or for worse!
 
-IMPORTANT NOTE: 
-There are 2 case statistics: actual cases and discovered cases.
+{cl.f.orange}IMPORTANT NOTE:{cl.r}
+There are 2 case statistics: {cl.bold}actual{cl.r} cases and {cl.bold}discovered{cl.r} cases.
 Actual Cases is the real number of cases in the community.
 Discovered Cases is a proportion of your Active Cases based on your Testing statistic - this means that if you have little or
 no testing, you will see little or no cases!
@@ -701,7 +801,8 @@ Tips:
  - Your restrictions are only effective if people are Compliant.
 
 Good luck!""")
-            input("Press [ENTER] to start! ")
+            time.sleep(2)
+            input(f"{cl.f.cyan}Press [ENTER] to start! {cl.r}")
             break
         elif ("L" in neworload.upper()):
             # The user wants to load an existing save.
@@ -713,41 +814,43 @@ Good luck!""")
             # Get savefile name
             while True:
                 loadedsave = input(
-                    "Please enter a savefile name (with extension) to load, or leave blank to cancel: ")
+                    f"{cl.f.cyan}Please enter {cl.f.green}a savefile name (with extension) to load{cl.f.cyan}, or leave blank to {cl.f.red}cancel{cl.f.cyan}: {cl.r}")
                 if (loadedsave == ""):
                     # If blank, cancel
-                    print("Cancelling...")
+                    print(f"{cl.f.red}Cancelling...{cl.r}")
                     break
                 else:
                     try:
                         # Attempt to find and load file.
                         with open(loadedsave, 'rb') as save:
                             player = pickle.load(save)
-                        print("Game loaded!")
+                        print(f"{cl.f.green}Game loaded!{cl.r}")
                         print(
                             f"Name: {player.name}, Country: {player.ctry}, In-Game Date: {player.date}.")
                         loaded = True
-                        input("Press [ENTER] to start... ")
+                        input(
+                            f"{cl.f.cyan}Press [ENTER] to start... {cl.r}")
                         break
                     except FileNotFoundError:
                         # File does not exist
                         print(
-                            "Could not load game! That savefile does not exist. Please try again.")
+                            f"{cl.f.red}Could not load game!{cl.r} That savefile does not exist. Please try again.")
                         input("Press [ENTER] to continue... ")
                     except PermissionError:
                         # No permissions
                         print(
-                            "Could not load game! You do not have permission to read or access this savefile. Please try again.")
+                            f"{cl.f.red}Could not load game!{cl.r} You do not have permission to read or access this savefile. Please try again.")
                         input("Press [ENTER] to continue... ")
                     except:
                         # Unknown error
                         print(
-                            "Could not load game! That file is invalid. Ensure that it is a valid .cov save, and that you have permissions to access it.")
-                        input("Press [ENTER] to continue... ")
+                            f"{cl.f.red}Could not load game!{cl.r} That file is invalid. Ensure that it is a valid .cov save, and that you have permissions to access it.")
+                        input(
+                            f"{cl.f.cyan}Press [ENTER] to continue... {cl.r}")
             if (loaded == True):
                 break
         else:
-            print("Hrm, that doesn't look like a valid option.")
+            print(f"{cl.f.red}Hrm, that doesn't look like a valid option.{cl.r}")
             print("Please type one of the options.")
 
 
@@ -771,7 +874,7 @@ while True:
     while True:
         print("What would you like to do?")
         change = input(
-            "Modify Measures ('M'), Save ('S'), Quit ('Q') or Next Turn (ENTER): ")
+            f"{cl.f.cyan}Modify Measures ('M'), Save ('S'), Quit ('Q') or Next Turn (ENTER): {cl.r}")
         if ("m" in change.lower()):
             # Chose to change measures.
             ochanges = optionChanges(options, player.msrs)
@@ -781,38 +884,40 @@ while True:
             name = ""
             while True:
                 # Get a name for the savefile
-                name = input("Please enter a name for your save file: ")
+                name = input(
+                    f"{cl.f.cyan}Please enter a name for your save file (without extension): {cl.r}")
                 if (name == ""):
-                    print("Please enter a name.")
+                    print(f"{cl.f.red}Please enter a name.{cl.r}")
                 else:
                     break
             # Finally, write to file.
             try:
                 with open((name + ".cov"), 'xb') as save:
                     pickle.dump(player, save)
-                    print("Game saved successfully.")
+                    print(f"{cl.f.green}Game saved successfully!{cl.r}")
             except FileExistsError:
                 while True:
                     # File already exists, ask for overwrite
                     overwrite = input(
-                        "A file already exists with that name. Do you want to overwrite it (yes/no)? ")
+                        f"{cl.f.orange}A file already exists with that name.{cl.r} Do you want to overwrite it (yes/no)? ")
                     if (overwrite == "yes"):
                         print(f"Overwriting {name}...")
                         try:
                             # If they approve an overwrite, start again with 'W' (overwrite) mode instead
                             with open((name + ".cov"), 'wb') as save:
                                 pickle.dump(player, save)
-                                print("Game saved successfully!")
+                                print(
+                                    f"{cl.f.green}Game saved successfully!{cl.r}")
                                 input("Press [ENTER] to continue... ")
                             break
                         except PermissionError:
                             print(
-                                "Could not save game! You do not have permission to write or create this file. Please try again.")
+                                f"{cl.f.red}Could not save game!{cl.r} You do not have permission to write or create this file. Please try again.")
                             input("Press [ENTER] to continue... ")
                             pass
                         except:
                             print(
-                                "Could not save game! Ensure you have permissions, and that no other programs are using the file.")
+                                f"{cl.f.red}Could not save game!{cl.r} Ensure you have permissions, and that no other programs are using the file.")
                             input("Press [ENTER] to continue... ")
                             pass
                     else:
@@ -820,13 +925,15 @@ while True:
                         break
             except:
                 print(
-                    "Could not save game! Ensure you have permissions, and that no other programs are using the file.")
+                    f"{cl.f.red}Could not save game!{cl.r} Ensure you have permissions, and that no other programs are using the file.")
                 input("Press [ENTER] to continue... ")
                 pass
         elif ("q" in change.lower()):
             # Chose to quit.
-            print("Are you sure you want to quit?")
-            bye = input("Type 'y' to confirm, or anything else to cancel: ")
+            print(
+                f"Are you sure you want to quit? {cl.f.orange}Any unsaved progress will be lost.{cl.r}")
+            bye = input(
+                f"{cl.f.cyan}Type 'y' to {cl.f.green}confirm{cl.f.cyan}, or anything else to {cl.f.red}cancel{cl.f.cyan}: {cl.r}")
             if ("y" == bye.lower()):
                 print("OK, bye!")
                 sys.exit()
@@ -834,10 +941,10 @@ while True:
                 print("Not quitting.")
         elif (change.lower() == ""):
             # Chose to continue.
-            print(f"Starting Turn {player.turn + 1}...")
+            print(f"{cl.f.cyan}Starting Turn {player.turn + 1}...{cl.r}")
             break
         else:
-            print("Please select an option.")
+            print(f"{cl.f.red}Please select an option.{cl.r}")
 
     # Apply changes.
     try:
@@ -863,45 +970,45 @@ while True:
     # Lose: Economy or Happiness are 0
     if (player.msrs[0].happ <= 0.001):
         # Lose (Happiness)
-        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
-        print("""
+        print(f"{cl.f.black}{cl.b.red}- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -{cl.r}")
+        print(f"""
 In a suprise attack, the citizens of your country stormed your residence and violently overthrew you.
 You have been exiled from your country, for leading them to ruin.
 
-Game over! You lost because your Happiness reached 0.""")
+{cl.f.red}Game over! You lost because your Happiness reached 0.{cl.r}""")
         print("Thanks for playing!")
-        input("Press ENTER to exit. ")
+        input(f"{cl.f.cyan}Press ENTER to exit. {cl.r}")
         sys.exit()
     elif (player.msrs[0].econ <= 0.001):
         # Lose (Economy)
-        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
-        print("""
+        print(f"{cl.f.black}{cl.b.red}- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -{cl.r}")
+        print(f"""
 After months of economic downturn, the economy of your country has collapsed. Famine and poverty are rife.
 You have been exiled from your country, for leading them to ruin.
 
-Game over! You lost because your Economy reached 0.""")
+{cl.f.red}Game over! You lost because your Economy reached 0.{cl.r}""")
         print("Thanks for playing!")
-        input("Press ENTER to exit. ")
+        input(f"{cl.f.cyan}Press ENTER to exit. {cl.r}")
         sys.exit()
-    elif (player.stat[0].tcse >= 1000000):
+    elif (player.stat[1].tcse >= 1000000):
         # Lose (Economy)
-        print("- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -")
-        print("""
-After millions of deaths from this virus, the people of your country have had enough. Hospitals are overflowing, and the dead line the streets.
+        print(f"{cl.f.black}{cl.b.red}- GAME OVER -------------------------------------------------------------------------------------- YOU LOSE! -{cl.r}")
+        print(f"""
+After a million cases of this virus, and no end in sight under your leadership, the people of your country have had enough. Hospitals are overflowing, and the dead line the streets.
 You have been exiled from your country, for leading them to ruin.
 
-Game over! You lost because your Cases got over 1,000,000.""")
+{cl.f.red}Game over! You lost because your Cases got over 1,000,000.{cl.r}""")
         print("Thanks for playing!")
-        input("Press ENTER to exit. ")
+        input(f"{cl.f.cyan}Press ENTER to exit. {cl.r}")
         sys.exit()
     elif (player.date.year == 2022):
         # Win
-        print("- GAME OVER --------------------------------------------------------------------------------------- YOU WIN! -")
-        print("""
+        print(f"{cl.f.black}{cl.b.green}- GAME OVER --------------------------------------------------------------------------------------- YOU WIN! -{cl.r}")
+        print(f"""
 After years of research, a vaccine for COVID-19 is finally discovered. Your government starts a massive vaccination campaign.
 You have finally overcome this terrible disease, and will probably go down in history!
 
-Game over! You won because you survived long enough to discover a vaccine.""")
+{cl.f.green}Game over! You won because you survived long enough to discover a vaccine.{cl.r}""")
         print("Thanks for playing!")
-        input("Press ENTER to exit. ")
+        input(f"{cl.f.cyan}Press ENTER to exit. {cl.r}")
         sys.exit()
